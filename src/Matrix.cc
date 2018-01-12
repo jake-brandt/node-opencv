@@ -86,6 +86,7 @@ void Matrix::Init(Local<Object> target) {
   #ifdef HAVE_OPENCV_VIDEO
   Nan::SetPrototypeMethod(ctor, "calcOpticalFlowPyrLK", CalcOpticalFlowPyrLK);
   #endif
+  Nan::SetPrototypeMethod(ctor, "houghLines", HoughLines);
   Nan::SetPrototypeMethod(ctor, "houghLinesP", HoughLinesP);
   Nan::SetPrototypeMethod(ctor, "houghCircles", HoughCircles);
   Nan::SetPrototypeMethod(ctor, "inRange", inRange);
@@ -1788,6 +1789,35 @@ NAN_METHOD(Matrix::CalcOpticalFlowPyrLK) {
   info.GetReturnValue().Set(data);
 }
 #endif
+
+NAN_METHOD(Matrix::HoughLines) {
+  Nan::HandleScope scope;
+
+  Matrix *self = Nan::ObjectWrap::Unwrap<Matrix>(info.This());
+  double rho = info.Length() < 1 ? 1 : info[0]->NumberValue();
+  double theta = info.Length() < 2 ? CV_PI/180 : info[1]->NumberValue();
+  int threshold = info.Length() < 3 ? 80 : info[2]->Uint32Value();
+  double srn = info.Length() < 4 ? 0 : info[3]->NumberValue();
+  double stn = info.Length() < 5 ? 0 : info[4]->NumberValue();
+  std::vector<cv::Vec4i> lines;
+
+  cv::Mat gray;
+
+  equalizeHist(self->mat, gray);
+
+  cv::HoughLines(gray, lines, rho, theta, threshold, srn, stn);
+
+  v8::Local<v8::Array> arr = Nan::New<Array>(lines.size());
+
+  for (unsigned int i=0; i<lines.size(); i++) {
+    v8::Local<v8::Array> pt = Nan::New<Array>(2);
+    pt->Set(0, Nan::New<Number>((double) lines[i][0]));
+    pt->Set(1, Nan::New<Number>((double) lines[i][1]));
+    arr->Set(i, pt);
+  }
+
+  info.GetReturnValue().Set(arr);
+}
 
 NAN_METHOD(Matrix::HoughLinesP) {
   Nan::HandleScope scope;

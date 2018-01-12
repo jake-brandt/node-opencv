@@ -93,6 +93,7 @@ public:
   #ifdef HAVE_OPENCV_VIDEO
   JSFUNC(CalcOpticalFlowPyrLK)
   #endif
+  JSFUNC(HoughLines)
   JSFUNC(HoughLinesP)
   JSFUNC(HoughCircles)
 
